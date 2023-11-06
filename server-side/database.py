@@ -1,5 +1,6 @@
 import sqlite3
 
+# Initialize the database
 def initialize_database():
     connection = sqlite3.connect('db.sqlite')
     cursor = connection.cursor()
@@ -24,9 +25,20 @@ def initialize_database():
         )
     ''')
 
-    # Insert hardcoded honey types (your existing data)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS orders (
+            id INTEGER PRIMARY KEY,
+            user_id INTEGER,
+            honey_type_id INTEGER,
+            quantity INTEGER,
+            FOREIGN KEY (user_id) REFERENCES users(id),
+            FOREIGN KEY (honey_type_id) REFERENCES honey_types(id)
+        )
+    ''')
+
+    # Insert Hardcoded honey types
     honey_types_data = [
-        ("Clover Honey", "https://biene-theme.myshopify.com/cdn/shop/products/p14_720x.jpg?v=1597915976", "A classic, sweet honey with a mild floral taste.", 4.5, 250),
+       ("Clover Honey", "https://biene-theme.myshopify.com/cdn/shop/products/p14_720x.jpg?v=1597915976", "A classic, sweet honey with a mild floral taste.", 4.5, 250),
         ("Wildflower Honey", "https://biene-theme.myshopify.com/cdn/shop/products/p15-ns_dbb339b5-731b-4d60-b7f3-ad9025cba68d_720x.jpg?v=1601974254", "A rich, amber-colored honey with a variety of floral flavors.", 4.2, 300),
         ("Manuka Honey", "https://biene-theme.myshopify.com/cdn/shop/products/p12-ns_66d85889-776c-4791-b4d2-addfafe941ea_720x.jpg?v=1601974253", "Renowned for its potential health benefits and unique flavor.", 4.8, 200),
         ("Acacia Honey", "https://beeswax-theme.myshopify.com/cdn/shop/products/shop-04_ffa34f8d-5c28-444c-8ca0-f346167b7d74_600x.png?v=1643975020", "Delicate and light, known for its mild and subtle taste.", 4.7, 350),
@@ -43,7 +55,7 @@ def initialize_database():
     connection.commit()
     connection.close()
 
-# Create a new User
+# Function to Create a User
 def create_user(username, email, password):
     connection = sqlite3.connect('db.sqlite')
     cursor = connection.cursor()
@@ -51,26 +63,16 @@ def create_user(username, email, password):
     connection.commit()
     connection.close()
 
-# Find a user by email and return user data as a dictionary
+# Function to Find a User by Email
 def find_user_by_email(email):
     connection = sqlite3.connect('db.sqlite')
     cursor = connection.cursor()
-    cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
-    user_data = cursor.fetchone()
+    cursor.execute("SELECT * FROM users WHERE email=?", (email,))
+    user = cursor.fetchone()
     connection.close()
+    return user
 
-    if user_data:
-        user = {
-            'id': user_data[0],
-            'username': user_data[1],
-            'email': user_data[2],
-            'password': user_data[3]
-        }
-        return user
-    else:
-        return None
-
-# Get all honey types
+# Function to Retrieve all Honey Types
 def get_all_honey_types():
     connection = sqlite3.connect('db.sqlite')
     cursor = connection.cursor()
@@ -78,3 +80,11 @@ def get_all_honey_types():
     honey_types = cursor.fetchall()
     connection.close()
     return honey_types
+
+# Function to Create an Order
+def create_order(user_id, honey_type_id, quantity):
+    connection = sqlite3.connect('db.sqlite')
+    cursor = connection.cursor()
+    cursor.execute("INSERT INTO orders (user_id, honey_type_id, quantity) VALUES (?, ?, ?)", (user_id, honey_type_id, quantity))
+    connection.commit()
+    connection.close()
